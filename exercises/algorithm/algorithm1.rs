@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,17 +69,66 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+    unsafe fn push_existing_node(&mut self, node: NonNull<Node<T>>) {
+        (*node.as_ptr()).next = None;
+        match self.end {
+            None => {
+                self.start = Some(node);
+            }
+            Some(end_p) => {
+                (*end_p.as_ptr()).next = Some(node);
+            }
+        }
+        self.end = Some(node);
+        self.length += 1;
+    }
+
+    unsafe fn append_remaining_chain(&mut self, mut node: NonNull<Node<T>>) {
+        let mut cur = Some(node);
+        let mut tail = node;
+        let mut cnt = 0;
+        while let Some(p) = cur {
+            cnt += 1;
+            tail = p;
+            cur = (*p.as_ptr()).next;
+        }
+        match self.end {
+            None => self.start = Some(node),
+            Some(end_p) => (*end_p.as_ptr()).next = Some(node),
+        }
+        self.end = Some(tail);
+        self.length += cnt;
+    }
+}
+impl<T:std::cmp::PartialOrd> LinkedList<T>{
+    pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+		let mut list_c =LinkedList::<T>::new();
+        let mut ptr_a = list_a.start;
+        let mut ptr_b = list_b.start;
+        unsafe {
+        while let (Some(a), Some(b)) = (ptr_a, ptr_b) {
+            
+                if a.as_ref().val <= b.as_ref().val {
+                    ptr_a = a.as_ref().next;
+                    list_c.push_existing_node(a);
+                } else {
+                    ptr_b = b.as_ref().next;
+                    list_c.push_existing_node(b);
+                }
+            
         }
-	}
+        if let Some(a) = ptr_a {
+            list_c.append_remaining_chain(a);
+        }
+        if let Some(b) = ptr_b {
+            list_c.append_remaining_chain(b);
+        }
+        }
+        list_c
+        }
 }
-
 impl<T> Display for LinkedList<T>
 where
     T: Display,

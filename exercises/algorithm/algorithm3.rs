@@ -3,10 +3,17 @@
 	This problem requires you to implement a sorting algorithm
 	you can use bubble sorting, insertion sorting, heap sorting, etc.
 */
-// I AM NOT DONE
 
-fn sort<T>(array: &mut [T]){
-	//TODO
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+fn sort<T: Ord+Clone>(array: &mut [T]){
+	let mut heap = BinaryHeap::new();
+    for x in array.iter() {
+        heap.push(Reverse(x.clone()));
+    }
+    for x in array{
+        *x = heap.pop().unwrap().0;
+    }
 }
 #[cfg(test)]
 mod tests {
